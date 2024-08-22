@@ -11,37 +11,42 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.lifespark.ui.screens.HomeScreen
 import com.example.lifespark.ui.theme.LifeSparkTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             LifeSparkTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                val navController = rememberNavController()
+                AppNavGraph(navController = navController)
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    LifeSparkTheme {
-        Greeting("Android")
+fun AppNavGraph(navController: NavHostController) {
+    NavHost(
+        navController = navController,
+        startDestination = "home"
+    ) {
+        composable("home") {
+            HomeScreen(
+                onCreateCharacter = { navController.navigate("create_character") },
+                onLoadCharacter = { navController.navigate("load_character") }
+            )
+        }
+        composable("create_character") {
+            // TODO: Implement CreateCharacterScreen
+        }
+        composable("load_character") {
+            // TODO: Implement LoadCharacterScreen
+        }
     }
 }
