@@ -34,6 +34,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.remember
+
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,13 +112,12 @@ fun CharacterBasicInfoScreen(
                 selectedGender = selectedGender,
                 onGenderSelected = onGenderSelected
             )
-/*
+
             // Alignment Grid
-            AlignmentSelectionGrid(
+            AlignmentGrid(
                 selectedAlignment = selectedAlignment,
                 onAlignmentSelected = onAlignmentSelected
             )
-           */
             // Next Button
             Button(onClick = onNext) {
                 Text("Next")
@@ -235,3 +242,44 @@ fun CustomChip(
     }
 }
 
+@Composable
+fun AlignmentGrid(
+    selectedAlignment: String?,
+    onAlignmentSelected: (String) -> Unit
+) {
+    val alignments = listOf(
+        "Lawful Good", "Neutral Good", "Chaotic Good",
+        "Lawful Neutral", "True Neutral", "Chaotic Neutral",
+        "Lawful Evil", "Neutral Evil", "Chaotic Evil"
+    )
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(16.dp)
+    ) {
+        items(alignments.size) { index ->
+            val alignment = alignments[index]
+            val isSelected = selectedAlignment == alignment
+
+            // Customizable alignment box
+            Surface(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clickable { onAlignmentSelected(alignment) },
+                color = if (isSelected) Color.Blue else Color.Gray,
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = alignment,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
