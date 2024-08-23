@@ -41,22 +41,21 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
+import com.example.lifespark.CharacterViewModel
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CharacterBasicInfoScreen(
-    onNext: () -> Unit,
-    onRaceSelected: (String) -> Unit,
-    onArchetypeSelected: (String) -> Unit,
-    onGenderSelected: (String) -> Unit,
-    onAlignmentSelected: (String) -> Unit,
-    selectedRace: String?,
-    selectedArchetype: String?,
-    selectedGender: String?,
-    selectedAlignment: String?
+    viewModel: CharacterViewModel,
+    onNext: () -> Unit
 ) {
+    // Access the ViewModel's state
+    val selectedRace = viewModel.selectedRace.value
+    val selectedArchetype = viewModel.selectedArchetype.value
+    val selectedGender = viewModel.selectedGender.value
+    val selectedAlignment = viewModel.selectedAlignment.value
     Scaffold(
         topBar = {
             TopAppBar(
@@ -89,7 +88,7 @@ fun CharacterBasicInfoScreen(
                     "Orc", "Satyr", "Tabaxi", "Tiefling", "Tortle", "Triton", "Warforged", "Yuan-ti (Pureblood)"
                 ),
                 selectedOption = selectedRace,
-                onOptionSelected = onRaceSelected
+                onOptionSelected = { viewModel.selectedRace }
             )
 
             // Archetype Selection Dropdown
@@ -104,19 +103,19 @@ fun CharacterBasicInfoScreen(
                     "War priest", "Warlock (Archfey)", "Warlock (Fiend)", "Warlock (Great Old One)"
                 ),
                 selectedOption = selectedArchetype,
-                onOptionSelected = onArchetypeSelected
+                onOptionSelected = { viewModel.selectedArchetype }
             )
 
             // Gender Selection Chips
             GenderSelectionChips(
                 selectedGender = selectedGender,
-                onGenderSelected = onGenderSelected
+                onGenderSelected = { viewModel.selectedGender }
             )
 
             // Alignment Grid
             AlignmentGrid(
                 selectedAlignment = selectedAlignment,
-                onAlignmentSelected = onAlignmentSelected
+                onAlignmentSelected = { viewModel.selectedAlignment }
             )
             // Next Button
             Button(onClick = onNext) {

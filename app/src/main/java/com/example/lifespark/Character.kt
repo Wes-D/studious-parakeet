@@ -1,6 +1,10 @@
 package com.example.lifespark
 
-data class Character(
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+data class NPC(
     val name: String,
     val race: String,
     val archetype: String,
@@ -8,5 +12,5 @@ data class Character(
     val alignment: String,
     val traits: List<String>,
     val backstory: String
-)
+) : Parcelable
 

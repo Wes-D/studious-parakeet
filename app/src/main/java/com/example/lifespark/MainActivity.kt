@@ -16,9 +16,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.lifespark.ui.screens.CharacterBasicInfoScreen
+import com.example.lifespark.ui.screens.CharacterOverviewScreen
 import com.example.lifespark.ui.screens.HomeScreen
 import com.example.lifespark.ui.screens.TraitsAndBackstoryScreen
 import com.example.lifespark.ui.theme.LifeSparkTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,11 +36,13 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
+    // Create and share the ViewModel
+    val characterViewModel: CharacterViewModel = viewModel()
+
     NavHost(
         navController = navController,
         startDestination = "home"
     ) {
-        // Home Screen
         composable("home") {
             HomeScreen(
                 onCreateCharacter = { navController.navigate("character_basic_info") },
@@ -46,43 +50,40 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
 
-        // Character Basic Info Screen (Page 1)
         composable("character_basic_info") {
             CharacterBasicInfoScreen(
-                selectedRace = /* state for race */,
-                onRaceSelected = { /* handle race selection */ },
-                selectedArchetype = /* state for archetype */,
-                onArchetypeSelected = { /* handle archetype selection */ },
-                selectedGender = /* state for gender */,
-                onGenderSelected = { /* handle gender selection */ },
-                selectedAlignment = /* state for alignment */,
-                onAlignmentSelected = { /* handle alignment selection */ },
-                onNext = {
-                    navController.navigate("traits_backstory")
-                }
+                viewModel = characterViewModel,  // Pass the ViewModel to the screen
+                onNext = { navController.navigate("traits_backstory") }
             )
         }
 
-        // Traits and Backstory Screen (Page 2)
         composable("traits_backstory") {
             TraitsAndBackstoryScreen(
-                selectedTraits = /* state for selected traits */,
-                onTraitSelected = { /* handle trait selection */ },
-                onTraitDeselected = { /* handle trait deselection */ },
-                backstoryPrompt = /* state for backstory prompt */,
-                onBackstoryChanged = { /* handle backstory input */ },
+                viewModel = characterViewModel,  // Pass the ViewModel to the screen
                 onGenerateNPC = {
-                    // Navigate to the NPC summary screen after generation
-                    navController.navigate("npc_summary")
+                    // Generate NPC using the ViewModel's state
+                    val generatedNPC = characterViewModel.generateNPC()
+
+                    // Pass the NPC to the summary screen
+                    navController.navigate("npc_summary") {
+                        navController.currentBackStackEntry?.arguments?.putParcelable("npc", generatedNPC)
+                    }
                 }
             )
         }
 
-        // Placeholder for NPC Summary Screen
         composable("npc_summary") {
-            // This will display the final generated NPC
-            // TODO: Implement NPCSummaryScreen
+            val npc = navController.previousBackStackEntry?.arguments?.getParcelable<NPC>("npc")
+            npc?.let {
+                CharacterOverviewScreen(
+                    npc = it,
+                    onEditCharacter = { navController.popBackStack() },
+                    onSaveCharacter = { /* Handle save */ },
+                    onExportCharacter = { /* Handle export */ }
+                )
+            }
         }
+
 
         // Load Character Screen
         composable("load_character") {

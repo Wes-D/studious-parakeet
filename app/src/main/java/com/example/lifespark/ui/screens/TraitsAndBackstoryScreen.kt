@@ -43,18 +43,18 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
+import com.example.lifespark.CharacterViewModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TraitsAndBackstoryScreen(
-    selectedTraits: List<String>,
-    onTraitSelected: (String) -> Unit,
-    onTraitDeselected: (String) -> Unit,
-    backstoryPrompt: String,
-    onBackstoryChanged: (String) -> Unit,
+    viewModel: CharacterViewModel,
     onGenerateNPC: () -> Unit
 ) {
+    // Access ViewModel's state
+    val selectedTraits = viewModel.selectedTraits.value
+    val backstoryPrompt = viewModel.backstoryPrompt.value
     val traitOptions = listOf("Brave", "Calm", "Cunning", "Impulsive", "Wise", "Kind", "Mysterious", "Charming")
     val maxSelectedTraits = 3
 
@@ -91,9 +91,11 @@ fun TraitsAndBackstoryScreen(
                         isSelected = isSelected,
                         onClick = {
                             if (isSelected) {
-                                onTraitDeselected(trait)
-                            } else if (selectedTraits.size < maxSelectedTraits) {
-                                onTraitSelected(trait)
+                                // Remove the trait if it is currently selected
+                                viewModel.selectedTraits.value -= trait
+                            } else if (viewModel.selectedTraits.value.size < maxSelectedTraits) {
+                                // Add the trait if it is not selected and there is space
+                                viewModel.selectedTraits.value += trait
                             }
                         }
                     )
@@ -105,7 +107,7 @@ fun TraitsAndBackstoryScreen(
 
             TextField(
                 value = backstoryPrompt,
-                onValueChange = onBackstoryChanged,
+                onValueChange = {viewModel.backstoryPrompt},
                 label = { Text("Enter a keyword or short sentence") },
                 modifier = Modifier.fillMaxWidth()
             )

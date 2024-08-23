@@ -1,33 +1,5 @@
 package com.example.lifespark
 
-fun generateNPC(
-    selectedRace: String,
-    selectedArchetype: String,
-    selectedGender: String,
-    selectedAlignment: String,
-    selectedTraits: List<String>,
-    backstoryPrompt: String
-): Character {
-    // Randomly generate a name (you can replace this with a more complex logic if needed)
-    val name = generateRandomName(selectedRace)
-
-    // Combine all input to generate a backstory (for now, use the prompt as is)
-    val backstory = backstoryPrompt.ifEmpty {
-        "A mysterious figure with traits of ${selectedTraits.joinToString()}."
-    }
-
-    // Create and return the generated NPC
-    return Character(
-        name = name,
-        race = selectedRace,
-        archetype = selectedArchetype,
-        gender = selectedGender,
-        alignment = selectedAlignment,
-        traits = selectedTraits,
-        backstory = backstory
-    )
-}
-
 // Example random name generator based on race
 fun generateRandomName(race: String): String {
     return when (race) {
