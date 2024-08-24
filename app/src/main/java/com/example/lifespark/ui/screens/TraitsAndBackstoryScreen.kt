@@ -45,7 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import com.example.lifespark.CharacterViewModel
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TraitsAndBackstoryScreen(
@@ -64,10 +64,11 @@ fun TraitsAndBackstoryScreen(
                 title = { Text("Create Your NPC - Step 2: Personality & Traits") }
             )
         }
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(paddingValues) // Use padding from Scaffold
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -107,10 +108,11 @@ fun TraitsAndBackstoryScreen(
 
             TextField(
                 value = backstoryPrompt,
-                onValueChange = {viewModel.backstoryPrompt},
+                onValueChange = { viewModel.backstoryPrompt.value = it },
                 label = { Text("Enter a keyword or short sentence") },
                 modifier = Modifier.fillMaxWidth()
             )
+
 
             Spacer(modifier = Modifier.height(16.dp))
 

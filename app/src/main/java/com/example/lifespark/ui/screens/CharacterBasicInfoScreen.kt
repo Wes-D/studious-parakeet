@@ -38,13 +38,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import com.example.lifespark.CharacterViewModel
 
-
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CharacterBasicInfoScreen(
@@ -56,16 +56,37 @@ fun CharacterBasicInfoScreen(
     val selectedArchetype = viewModel.selectedArchetype.value
     val selectedGender = viewModel.selectedGender.value
     val selectedAlignment = viewModel.selectedAlignment.value
+    val raceOptions = listOf(
+        "Aarakocra", "Aasimar (Fallen)", "Aasimar (Protector)", "Aasimar (Scourge)", "Bugbear", "Centaur", "Changling",
+        "Dragonborn", "Dwarf (Duergar)", "Dwarf (Hill)", "Dwarf (Mountain)", "Elf (Drow)", "Elf (Eladrin)",
+        "Elf (Moon)", "Elf (Sea)", "Elf (Shadar-Kai)", "Elf (Sun)", "Elf (Wood)", "Firbolg", "Genasi (Air)",
+        "Genasi (Earth)", "Genasi (Fire)", "Genasi (Water)", "Githyanki", "Githzerai", "Gnome (Forest)",
+        "Gnome (Rock)", "Gnome (Svirfneblin)", "Goblin", "Goliath", "Half-Elf (Drow)", "Half-Elf (Eladrin)",
+        "Half-Elf (Moon)", "Half-Elf (Sea)", "Half-Elf (Shadar-Kai)", "Half-Elf (Sun)", "Half-Elf (Wood)",
+        "Half-Orc", "Halfling (Ghostwise)", "Halfling (Lightfoot)", "Halfling (Lotusden)", "Halfling (Stout)",
+        "Hobgoblin", "Human", "Kalashtar", "Kenku", "Kobold", "Leonin", "Lizardfolk", "Loxodon", "Minotaur",
+        "Orc", "Satyr", "Tabaxi", "Tiefling", "Tortle", "Triton", "Warforged", "Yuan-ti (Pureblood)"
+    )
+    val archetypeOptions = listOf(
+        "Abjurer", "Acolyte", "Apprentice wizard", "Archer", "Artisan", "Assassin", "Bard", "Bandit", "Bandit captain",
+        "Berserker", "Blackguard", "Champion", "Conjurer", "Diviner", "Druid", "Enchanter", "Evoker", "Gladiator",
+        "Guard", "Healer", "Host", "Illusionist", "Innocent", "Knight", "Mage", "Martial arts adept", "Master thief",
+        "Merchant", "Necromancer", "Noble", "Pilgrim", "Priest", "Royalty", "Sage", "Scout", "Shadow", "Spy",
+        "Swashbuckler", "Thug", "Transmuter", "Tribal warrior", "Trickster", "Vagabond", "Veteran", "Villager",
+        "War priest", "Warlock (Archfey)", "Warlock (Fiend)", "Warlock (Great Old One)"
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Create Your NPC - Step 1: Basic Info") }
             )
         }
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(paddingValues)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -74,48 +95,34 @@ fun CharacterBasicInfoScreen(
             Text("Step 1 of 2", style = MaterialTheme.typography.bodyMedium)
 
             // Race Selection Dropdown
-            SearchableDropdownMenu(
-                label = "Race",
-                options = listOf(
-                    "Aarakocra", "Aasimar (Fallen)", "Aasimar (Protector)", "Aasimar (Scourge)", "Bugbear", "Centaur", "Changling",
-                    "Dragonborn", "Dwarf (Duergar)", "Dwarf (Hill)", "Dwarf (Mountain)", "Elf (Drow)", "Elf (Eladrin)",
-                    "Elf (Moon)", "Elf (Sea)", "Elf (Shadar-Kai)", "Elf (Sun)", "Elf (Wood)", "Firbolg", "Genasi (Air)",
-                    "Genasi (Earth)", "Genasi (Fire)", "Genasi (Water)", "Githyanki", "Githzerai", "Gnome (Forest)",
-                    "Gnome (Rock)", "Gnome (Svirfneblin)", "Goblin", "Goliath", "Half-Elf (Drow)", "Half-Elf (Eladrin)",
-                    "Half-Elf (Moon)", "Half-Elf (Sea)", "Half-Elf (Shadar-Kai)", "Half-Elf (Sun)", "Half-Elf (Wood)",
-                    "Half-Orc", "Halfling (Ghostwise)", "Halfling (Lightfoot)", "Halfling (Lotusden)", "Halfling (Stout)",
-                    "Hobgoblin", "Human", "Kalashtar", "Kenku", "Kobold", "Leonin", "Lizardfolk", "Loxodon", "Minotaur",
-                    "Orc", "Satyr", "Tabaxi", "Tiefling", "Tortle", "Triton", "Warforged", "Yuan-ti (Pureblood)"
-                ),
+            DropdownMenuWithSearch(
+                options = raceOptions,
                 selectedOption = selectedRace,
-                onOptionSelected = { viewModel.selectedRace }
+                onOptionSelected = { viewModel.selectedRace.value = it },
+                label = "Race"
             )
 
             // Archetype Selection Dropdown
-            SearchableDropdownMenu(
-                label = "Archetype",
-                options = listOf(
-                    "Abjurer", "Acolyte", "Apprentice wizard", "Archer", "Artisan", "Assassin", "Bard", "Bandit", "Bandit captain",
-                    "Berserker", "Blackguard", "Champion", "Conjurer", "Diviner", "Druid", "Enchanter", "Evoker", "Gladiator",
-                    "Guard", "Healer", "Host", "Illusionist", "Innocent", "Knight", "Mage", "Martial arts adept", "Master thief",
-                    "Merchant", "Necromancer", "Noble", "Pilgrim", "Priest", "Royalty", "Sage", "Scout", "Shadow", "Spy",
-                    "Swashbuckler", "Thug", "Transmuter", "Tribal warrior", "Trickster", "Vagabond", "Veteran", "Villager",
-                    "War priest", "Warlock (Archfey)", "Warlock (Fiend)", "Warlock (Great Old One)"
-                ),
+            DropdownMenuWithSearch(
+                options = archetypeOptions,
                 selectedOption = selectedArchetype,
-                onOptionSelected = { viewModel.selectedArchetype }
+                onOptionSelected = { viewModel.selectedArchetype.value = it },
+                label = "Archetype"
             )
 
             // Gender Selection Chips
             GenderSelectionChips(
                 selectedGender = selectedGender,
-                onGenderSelected = { viewModel.selectedGender }
+                onGenderSelected = { selectedGender ->
+                    viewModel.selectedGender.value = selectedGender }
             )
 
             // Alignment Grid
             AlignmentGrid(
                 selectedAlignment = selectedAlignment,
-                onAlignmentSelected = { viewModel.selectedAlignment }
+                onAlignmentSelected = { selectedAlignment ->
+                    viewModel.selectedAlignment.value = selectedAlignment
+                }
             )
             // Next Button
             Button(onClick = onNext) {
@@ -126,50 +133,73 @@ fun CharacterBasicInfoScreen(
 }
 
 @Composable
-fun SearchableDropdownMenu(
-    label: String,
+fun DropdownMenuWithSearch(
     options: List<String>,
-    selectedOption: String?,
-    onOptionSelected: (String) -> Unit
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit,
+    label: String
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var searchText by remember { mutableStateOf("") }
-    val filteredOptions = options.filter { it.contains(searchText, ignoreCase = true) }
+    var searchQuery by remember { mutableStateOf("") }
+    var currentSelection by remember { mutableStateOf(selectedOption) } // Handle selectedOption locally
+
+    val filteredOptions = options.filter { it.contains(searchQuery, ignoreCase = true) }
 
     Column {
-        // Search TextField
-        TextField(
-            value = searchText,
-            onValueChange = { searchText = it },
-            label = { Text(label) },
-            modifier = Modifier.fillMaxWidth()
+        // Label and currently selected option
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+        OutlinedTextField(
+            value = currentSelection, // Reactive to current selection
+            onValueChange = { /* Read-only */ },
+            label = { Text("Selected $label") },
+            readOnly = true,
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
+                }
+            }
         )
 
-        // Dropdown Button
-        Box {
-            OutlinedButton(onClick = { expanded = true }) {
-                Text(selectedOption ?: "Select $label")
-            }
+        if (expanded) {
+            // Search box appears above the dropdown
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Search $label") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-            // Dropdown Menu
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.fillMaxWidth()
+                onDismissRequest = { expanded = false }
             ) {
-                filteredOptions.forEach { option ->
+                if (filteredOptions.isNotEmpty()) {
+                    filteredOptions.forEach { option ->
+                        DropdownMenuItem(
+                            onClick = {
+                                currentSelection = option
+                                onOptionSelected(option)
+                                expanded = false
+                                searchQuery = "" // Reset search on selection
+                            }
+                        ) {
+                            Text(text = option)
+                        }
+                    }
+                } else {
                     DropdownMenuItem(
-                        onClick = {
-                            onOptionSelected(option)
-                            expanded = false
-                        },
-                        text = { Text(text = option) }
-                    )
+                        onClick = { /* No-op */ }
+                    ) {
+                        Text(text = "No results found", style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             }
         }
     }
 }
+
+
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -226,20 +256,19 @@ fun CustomChip(
     onClick: () -> Unit
 ) {
     Surface(
-        modifier = Modifier
-            .padding(4.dp)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+        modifier = Modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(8.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface)
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+            modifier = Modifier.padding(8.dp),
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }
+
 
 @Composable
 fun AlignmentGrid(
