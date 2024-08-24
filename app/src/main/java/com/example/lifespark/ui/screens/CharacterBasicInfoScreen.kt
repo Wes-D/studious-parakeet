@@ -44,6 +44,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import com.example.lifespark.CharacterViewModel
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,16 +96,16 @@ fun CharacterBasicInfoScreen(
             // Progress Indicator
             Text("Step 1 of 2", style = MaterialTheme.typography.bodyMedium)
 
-            // Race Selection Dropdown
-            DropdownMenuWithSearch(
+            // Race Dropdown with Dialog
+            DropdownMenuWithSearchDialog(
                 options = raceOptions,
                 selectedOption = selectedRace,
                 onOptionSelected = { viewModel.selectedRace.value = it },
                 label = "Race"
             )
 
-            // Archetype Selection Dropdown
-            DropdownMenuWithSearch(
+            // Archetype Dropdown with Dialog
+            DropdownMenuWithSearchDialog(
                 options = archetypeOptions,
                 selectedOption = selectedArchetype,
                 onOptionSelected = { viewModel.selectedArchetype.value = it },
@@ -133,71 +135,70 @@ fun CharacterBasicInfoScreen(
 }
 
 @Composable
-fun DropdownMenuWithSearch(
+fun DropdownMenuWithSearchDialog(
     options: List<String>,
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
     label: String
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var dialogOpen by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
-    var currentSelection by remember { mutableStateOf(selectedOption) } // Handle selectedOption locally
-
     val filteredOptions = options.filter { it.contains(searchQuery, ignoreCase = true) }
 
     Column {
         // Label and currently selected option
         Text(text = label, style = MaterialTheme.typography.bodyMedium)
         OutlinedTextField(
-            value = currentSelection, // Reactive to current selection
-            onValueChange = { /* Read-only */ },
+            value = selectedOption,
+            onValueChange = { },
             label = { Text("Selected $label") },
             readOnly = true,
             modifier = Modifier.fillMaxWidth(),
             trailingIcon = {
-                IconButton(onClick = { expanded = !expanded }) {
+                IconButton(onClick = { dialogOpen = true }) {
                     Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
                 }
             }
         )
 
-        if (expanded) {
-            // Search box appears above the dropdown
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text("Search $label") },
-                modifier = Modifier.fillMaxWidth()
-            )
+        if (dialogOpen) {
+            AlertDialog(
+                onDismissRequest = { dialogOpen = false },
+                title = { Text("Select $label") },
+                text = {
+                    Column {
+                        // Search box inside the dialog
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            label = { Text("Search $label") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                if (filteredOptions.isNotEmpty()) {
-                    filteredOptions.forEach { option ->
-                        DropdownMenuItem(
-                            onClick = {
-                                currentSelection = option
-                                onOptionSelected(option)
-                                expanded = false
-                                searchQuery = "" // Reset search on selection
+                        // Filtered options inside the dialog
+                        filteredOptions.forEach { option ->
+                            TextButton(
+                                onClick = {
+                                    onOptionSelected(option)
+                                    dialogOpen = false
+                                    searchQuery = ""  // Reset search when an option is selected
+                                }
+                            ) {
+                                Text(text = option)
                             }
-                        ) {
-                            Text(text = option)
                         }
                     }
-                } else {
-                    DropdownMenuItem(
-                        onClick = { /* No-op */ }
-                    ) {
-                        Text(text = "No results found", style = MaterialTheme.typography.bodyMedium)
+                },
+                confirmButton = {
+                    TextButton(onClick = { dialogOpen = false }) {
+                        Text("Close")
                     }
                 }
-            }
+            )
         }
     }
 }
+
 
 
 
