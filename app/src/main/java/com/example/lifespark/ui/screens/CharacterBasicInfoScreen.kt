@@ -2,6 +2,11 @@ package com.example.lifespark.ui.screens
 
 import androidx.compose.runtime.Composable
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -33,12 +38,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -49,8 +56,12 @@ import com.example.lifespark.CharacterViewModel
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -225,7 +236,7 @@ fun DropdownMenuWithSearchDialog(
 
 
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun GenderSelectionChips(
     selectedGender: String?,
@@ -235,41 +246,116 @@ fun GenderSelectionChips(
 
     // State for custom gender input
     var customGender by remember { mutableStateOf("") }
+    var isCustomSelected by remember { mutableStateOf(selectedGender == "Custom") }
+    var showError by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     Column {
-        Text("Select Gender")
+        Text("Select Gender", style = MaterialTheme.typography.bodyMedium)
 
         FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalArrangement = Arrangement.Top
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.Center
         ) {
             genderOptions.forEach { gender ->
                 val isSelected = selectedGender == gender
-
-                CustomChip(
+                GenderChip(
                     text = gender,
                     isSelected = isSelected,
                     onClick = {
-                        if (gender == "Custom") {
-                            onGenderSelected(customGender)
-                        } else {
-                            onGenderSelected(gender)
-                        }
+                        onGenderSelected(gender)
+                        isCustomSelected = (gender == "Custom")
+                        showError = false // Reset error when switching selection
                     }
                 )
             }
         }
 
-        // Custom Gender Input
-        if (selectedGender == "Custom") {
-            TextField(
-                value = customGender,
-                onValueChange = { customGender = it },
-                label = { Text("Enter Custom Gender") },
-                modifier = Modifier.fillMaxWidth()
-            )
+        // Show custom gender input field with smooth animation
+        AnimatedVisibility(
+            visible = isCustomSelected,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Column {
+                OutlinedTextField(
+                    value = customGender,
+                    onValueChange = { newValue ->
+                        // Allow only letters, hyphens, apostrophes, and spaces; limit length to 20
+                        val filteredText = newValue.filter { it.isLetter() || it == '-' || it == '\'' || it.isWhitespace() }
+                        if (filteredText.length <= 20) {
+                            customGender = filteredText
+                        }
+                    },
+                    label = { Text("Enter Custom Gender") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Done,
+                        capitalization = KeyboardCapitalization.Sentences
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+                        }
+                    ),
+                    isError = showError // Display error if necessary
+                )
+
+                // Error message if input is invalid
+                if (showError) {
+                    Text(
+                        text = "Please enter a valid gender (1-20 characters, no numbers)",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(top = 8.dp))
+
+                Button(
+                    onClick = {
+                        if (customGender.isBlank()) {
+                            showError = true
+                        } else {
+                            onGenderSelected(customGender)
+                            showError = false // Hide error when a valid input is submitted
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("Confirm")
+                }
+            }
         }
+    }
+}
+
+@Composable
+fun GenderChip(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .padding(4.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+        tonalElevation = if (isSelected) 8.dp else 0.dp // Add elevation when selected
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
