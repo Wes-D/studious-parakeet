@@ -45,8 +45,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Icon
@@ -61,6 +63,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,6 +110,7 @@ fun CharacterBasicInfoScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -142,6 +148,7 @@ fun CharacterBasicInfoScreen(
                     viewModel.selectedAlignment.value = selectedAlignment
                 }
             )
+
             // Next Button
             Button(onClick = onNext) {
                 Text("Next")
@@ -391,33 +398,62 @@ fun AlignmentGrid(
         "Lawful Evil", "Neutral Evil", "Chaotic Evil"
     )
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.padding(16.dp)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(alignments.size) { index ->
-            val alignment = alignments[index]
-            val isSelected = selectedAlignment == alignment
+        // Title for the section
+        Text(
+            text = "Select Alignment",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
 
-            // Customizable alignment box
-            Surface(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .clickable { onAlignmentSelected(alignment) },
-                color = if (isSelected) Color.Blue else Color.Gray,
-                shape = RoundedCornerShape(8.dp)
+        // Alignment grid
+        for (i in alignments.chunked(3)) { // Create rows with 3 items each
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = alignment,
-                        color = Color.White
+                for (alignment in i) {
+                    AlignmentBox(
+                        alignment = alignment,
+                        isSelected = selectedAlignment == alignment,
+                        onAlignmentSelected = onAlignmentSelected,
+                        modifier = Modifier.weight(1f) // Distribute equally in Row
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun AlignmentBox(
+    alignment: String,
+    isSelected: Boolean,
+    onAlignmentSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .aspectRatio(1f) // Ensures that the boxes are square
+            .clickable { onAlignmentSelected(alignment) },
+        shape = RoundedCornerShape(8.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray,
+        border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+        tonalElevation = if (isSelected) 4.dp else 0.dp
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Text(
+                text = alignment,
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.Black,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
