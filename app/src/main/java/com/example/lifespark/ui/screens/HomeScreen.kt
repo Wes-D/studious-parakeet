@@ -1,7 +1,6 @@
 package com.example.lifespark.ui.screens
 
 import com.example.lifespark.R
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +25,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +35,7 @@ fun HomeScreen(
     onLoadCharacter: () -> Unit     // Lambda for navigation to load a character
 ) {
     val backgroundPainter: Painter = painterResource(id = R.drawable.background_parchment)
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -41,7 +43,6 @@ fun HomeScreen(
                     Text(
                         text = "Life Spark",
                         style = MaterialTheme.typography.headlineSmall.copy(
-                            fontFamily = FontFamily.Serif,
                             color = Color(0xFF3E2723)
                         )
                     )

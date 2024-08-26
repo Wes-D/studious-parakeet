@@ -73,6 +73,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.*
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,21 +110,24 @@ fun CharacterBasicInfoScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Step 1/2: Basic Information",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontFamily = FontFamily.Serif,
-                            color = Color(0xFF3E2723)
-                        )
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFFBE9E7)
-                ),
+            // Custom TopAppBar with decoration and soft shadow
+            Box(
                 modifier = Modifier
-            )
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .background(Color(0xFFFBE9E7)) // Parchment-like color
+                    .shadow(2.dp) // Soft shadow for depth
+            ) {
+                // The main title text centered
+                Text(
+                    text = "Basic Information",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontFamily = FontFamily.Serif,
+                        color = Color(0xFF3E2723)
+                    ),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         }
     ) { paddingValues ->
         Box(
