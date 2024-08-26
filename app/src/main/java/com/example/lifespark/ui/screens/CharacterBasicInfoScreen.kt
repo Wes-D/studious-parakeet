@@ -3,6 +3,7 @@ package com.example.lifespark.ui.screens
 import com.example.lifespark.R
 import androidx.compose.runtime.Composable
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -63,6 +64,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.border
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -450,9 +453,30 @@ fun AlignmentBox(
         else -> Color(0xFF9E9E9E) // Grey for neutral alignments
     }
 
+    // Determine border color based on alignment type
+    val borderColor = when {
+        alignment.contains("Good") -> Color.Cyan
+        alignment.contains("Evil") -> Color(0xFF9C27B0) // Purple for evil alignments
+        else -> Color.White // White for neutral alignments
+    }
+
+    // Animate border color and width
+    val animatedBorderColor by animateColorAsState(
+        targetValue = if (isSelected) borderColor else Color.Black,
+        animationSpec = tween(durationMillis = 500), label = ""
+    )
+    val animatedBorderWidth by animateDpAsState(
+        targetValue = if (isSelected) 4.dp else 1.dp,
+        animationSpec = tween(durationMillis = 500), label = ""
+    )
+
     Surface(
         modifier = modifier
-            .clickable { onAlignmentSelected(alignment) },
+            .clickable { onAlignmentSelected(alignment) }
+            .border(
+                BorderStroke(animatedBorderWidth, animatedBorderColor),
+                RoundedCornerShape(8.dp)
+            ),
         shape = RoundedCornerShape(8.dp),
         color = if (isSelected) backgroundColor.copy(alpha = 0.6f) else backgroundColor, // Slightly dim background when selected
         shadowElevation = if (isSelected) 10.dp else 2.dp,
