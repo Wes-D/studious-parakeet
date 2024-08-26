@@ -1,13 +1,14 @@
 package com.example.lifespark.ui.screens
 
+import com.example.lifespark.R
 import androidx.compose.runtime.Composable
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -22,10 +23,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,13 +36,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -62,11 +57,12 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -400,27 +396,28 @@ fun AlignmentGrid(
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Title for the section
         Text(
             text = "Select Alignment",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
+            style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Alignment grid
-        for (i in alignments.chunked(3)) { // Create rows with 3 items each
+
+        for (row in alignments.chunked(3)) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                for (alignment in i) {
+                for (alignment in row) {
                     AlignmentBox(
                         alignment = alignment,
                         isSelected = selectedAlignment == alignment,
                         onAlignmentSelected = onAlignmentSelected,
-                        modifier = Modifier.weight(1f) // Distribute equally in Row
+                        imageResId = getAlignmentImage(alignment),
+                        modifier = Modifier.weight(1f) // Distribute evenly in the row
                     )
                 }
             }
@@ -433,27 +430,56 @@ fun AlignmentBox(
     alignment: String,
     isSelected: Boolean,
     onAlignmentSelected: (String) -> Unit,
+    imageResId: Int, // Image resource ID for the alignment
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier
-            .aspectRatio(1f) // Ensures that the boxes are square
+        modifier = Modifier
+            .aspectRatio(1f)
             .clickable { onAlignmentSelected(alignment) },
         shape = RoundedCornerShape(8.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray,
-        border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-        tonalElevation = if (isSelected) 4.dp else 0.dp
+        color = if (isSelected) Color.LightGray else Color.White,
+        shadowElevation = if (isSelected) 10.dp else 2.dp,
+        border = BorderStroke(1.dp, Color.Black)
     ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.padding(8.dp)
         ) {
-            Text(
-                text = alignment,
-                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.Black,
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                // Display the image corresponding to the alignment
+                Image(
+                    painter = painterResource(id = imageResId),
+                    contentDescription = alignment,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize(0.6f) //image scaled to 60% of box size
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = alignment,
+                    color = if (isSelected) Color.Black else Color.Gray,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
+    }
+}
+
+// Function to map each alignment to its respective image
+fun getAlignmentImage(alignment: String): Int {
+    return when (alignment) {
+        "Lawful Good" -> R.drawable.alignment_lawful_good
+        "Neutral Good" -> R.drawable.alignment_neutral_good
+        "Chaotic Good" -> R.drawable.alignment_chaotic_good
+        "Lawful Neutral" -> R.drawable.alignment_lawful_neutral
+        "True Neutral" -> R.drawable.alignment_true_neutral
+        "Chaotic Neutral" -> R.drawable.alignment_chaotic_neutral
+        "Lawful Evil" -> R.drawable.alignment_lawful_evil
+        "Neutral Evil" -> R.drawable.alignment_neutral_evil
+        "Chaotic Evil" -> R.drawable.alignment_chaotic_evil
+        else -> R.drawable.alignment_default // Fallback image
     }
 }
