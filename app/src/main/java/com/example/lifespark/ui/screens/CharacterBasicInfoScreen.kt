@@ -395,30 +395,40 @@ fun AlignmentGrid(
     )
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Select Alignment",
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-
 
         for (row in alignments.chunked(3)) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                for (alignment in row) {
+                row.forEach { alignment ->
                     AlignmentBox(
                         alignment = alignment,
                         isSelected = selectedAlignment == alignment,
                         onAlignmentSelected = onAlignmentSelected,
                         imageResId = getAlignmentImage(alignment),
-                        modifier = Modifier.weight(1f) // Distribute evenly in the row
+                        modifier = Modifier
+                            .weight(1f) // Distribute evenly in the row
+                            .aspectRatio(1f)
                     )
+                }
+                // If the row has less than 3 items, fill the remaining space with empty boxes
+                if (row.size < 3) {
+                    repeat(3 - row.size) {
+                        Spacer(modifier = Modifier.weight(1f).aspectRatio(1f))
+                    }
                 }
             }
         }
@@ -433,12 +443,18 @@ fun AlignmentBox(
     imageResId: Int, // Image resource ID for the alignment
     modifier: Modifier = Modifier
 ) {
+    // Determine background color based on alignment type
+    val backgroundColor = when {
+        alignment.contains("Good") -> Color(0xFF4CAF50) // Green for good alignments
+        alignment.contains("Evil") -> Color(0xFFF44336) // Red for evil alignments
+        else -> Color(0xFF9E9E9E) // Grey for neutral alignments
+    }
+
     Surface(
-        modifier = Modifier
-            .aspectRatio(1f)
+        modifier = modifier
             .clickable { onAlignmentSelected(alignment) },
         shape = RoundedCornerShape(8.dp),
-        color = if (isSelected) Color.LightGray else Color.White,
+        color = if (isSelected) backgroundColor.copy(alpha = 0.6f) else backgroundColor, // Slightly dim background when selected
         shadowElevation = if (isSelected) 10.dp else 2.dp,
         border = BorderStroke(1.dp, Color.Black)
     ) {
@@ -455,18 +471,22 @@ fun AlignmentBox(
                     painter = painterResource(id = imageResId),
                     contentDescription = alignment,
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize(0.6f) //image scaled to 60% of box size
+                    modifier = Modifier
+                        .fillMaxSize() // image scaled to 100% of box size
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+
+                // Alignment Label if wanted
+                /*Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = alignment,
                     color = if (isSelected) Color.Black else Color.Gray,
                     textAlign = TextAlign.Center
-                )
+                )*/
             }
         }
     }
 }
+
 
 // Function to map each alignment to its respective image
 fun getAlignmentImage(alignment: String): Int {
