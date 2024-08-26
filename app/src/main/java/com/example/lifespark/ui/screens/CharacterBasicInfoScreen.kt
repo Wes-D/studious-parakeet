@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,8 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -31,13 +30,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Icon
@@ -46,6 +48,9 @@ import androidx.compose.material3.OutlinedTextField
 import com.example.lifespark.CharacterViewModel
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,57 +149,75 @@ fun DropdownMenuWithSearchDialog(
     var dialogOpen by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     val filteredOptions = options.filter { it.contains(searchQuery, ignoreCase = true) }
+    val focusManager = LocalFocusManager.current
 
-    Column {
-        // Label and currently selected option
-        Text(text = label, style = MaterialTheme.typography.bodyMedium)
-        OutlinedTextField(
-            value = selectedOption,
-            onValueChange = { },
-            label = { Text("Selected $label") },
-            readOnly = true,
-            modifier = Modifier.fillMaxWidth(),
-            trailingIcon = {
-                IconButton(onClick = { dialogOpen = true }) {
-                    Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
-                }
-            }
-        )
+    Box(modifier = Modifier.clickable { focusManager.clearFocus() }) {
+        Column {
 
-        if (dialogOpen) {
-            AlertDialog(
-                onDismissRequest = { dialogOpen = false },
-                title = { Text("Select $label") },
-                text = {
-                    Column {
-                        // Search box inside the dialog
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            label = { Text("Search $label") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+            // Label and currently selected option
+            Text(text = label, style = MaterialTheme.typography.bodyMedium)
 
-                        // Filtered options inside the dialog
-                        filteredOptions.forEach { option ->
-                            TextButton(
-                                onClick = {
-                                    onOptionSelected(option)
-                                    dialogOpen = false
-                                    searchQuery = ""  // Reset search when an option is selected
-                                }
-                            ) {
-                                Text(text = option)
-                            }
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = { dialogOpen = false }) {
-                        Text("Close")
+            OutlinedTextField(
+                value = selectedOption,
+                onValueChange = { },
+                label = { Text("Selected $label") },
+                readOnly = true,
+                interactionSource = remember { MutableInteractionSource() },
+                modifier = Modifier
+                    .fillMaxWidth().clickable { dialogOpen = true },
+                trailingIcon = {
+                    IconButton(onClick = { dialogOpen = true }) {
+                        Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
                     }
                 }
             )
+
+            if (dialogOpen) {
+                AlertDialog(
+                    onDismissRequest = { dialogOpen = false },
+                    title = { Text("Select $label") },
+                    text = {
+                        Column {
+                            // Search box inside the dialog
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                label = { Text("Search $label") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Done
+                                )
+                            )
+
+                            // Filtered options inside the dialog
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 400.dp)
+                            ) {
+                                items(filteredOptions) { option ->
+                                    TextButton(
+                                        onClick = {
+                                            onOptionSelected(option)
+                                            dialogOpen = false
+                                            searchQuery = ""  // Reset search when an option is selected
+                                        }
+                                    ) {
+                                        Text(text = option)
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { dialogOpen = false }) {
+                            Text("Close")
+                        }
+                    }
+                )
+            }
         }
     }
 }
