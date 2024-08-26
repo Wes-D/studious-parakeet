@@ -66,6 +66,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,10 +80,11 @@ fun CharacterBasicInfoScreen(
     viewModel: CharacterViewModel,
     onNext: () -> Unit
 ) {
+    // Background Image
+    val backgroundPainter: Painter = painterResource(id = R.drawable.background_parchment)
     // Access the ViewModel's state
     val selectedRace = viewModel.selectedRace.value
     val selectedArchetype = viewModel.selectedArchetype.value
-    val selectedGender = viewModel.selectedGender.value
     val selectedAlignment = viewModel.selectedAlignment.value
     val raceOptions = listOf(
         "Aarakocra", "Aasimar (Fallen)", "Aasimar (Protector)", "Aasimar (Scourge)", "Bugbear", "Centaur", "Changling",
@@ -101,56 +109,93 @@ fun CharacterBasicInfoScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Create Your NPC - Step 1: Basic Info") }
+                title = {
+                    Text(
+                        text = "Step 1/2: Basic Information",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color(0xFF3E2723)
+                        )
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFFBE9E7)
+                ),
+                modifier = Modifier
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .background(Color.Transparent)
         ) {
-            // Progress Indicator
-            Text("Step 1 of 2", style = MaterialTheme.typography.bodyMedium)
-
-            // Race Dropdown with Dialog
-            DropdownMenuWithSearchDialog(
-                options = raceOptions,
-                selectedOption = selectedRace,
-                onOptionSelected = { viewModel.selectedRace.value = it },
-                label = "Race"
+            // Image as a background
+            Image(
+                painter = backgroundPainter,
+                contentDescription = null,
+                contentScale = ContentScale.Crop, // Scale the image to fill the entire box
+                modifier = Modifier.fillMaxSize()
             )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                    /*
+                    Image(
+                        painter = painterResource(id = R.drawable.dragon_stamp), // Your decorative image
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(80.dp) // Adjust size as needed
+                            .padding(start = 4.dp, end = 16.dp)
+                    )
+                    */
 
-            // Archetype Dropdown with Dialog
-            DropdownMenuWithSearchDialog(
-                options = archetypeOptions,
-                selectedOption = selectedArchetype,
-                onOptionSelected = { viewModel.selectedArchetype.value = it },
-                label = "Archetype"
-            )
+                // Decorative or simple divider below the TopAppBar
+                HorizontalDivider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 2.dp),
+                    thickness = 4.dp,
+                    color = Color(0xFF795548) // Use a decorative color that matches the theme
+                )
 
-            // Gender Selection Chips
-            GenderSelectionChips(
-                selectedGender = selectedGender,
-                onGenderSelected = { selectedGender ->
-                    viewModel.selectedGender.value = selectedGender }
-            )
+                // Progress Indicator
+                //Text("Step 1 of 2", style = MaterialTheme.typography.bodyLarge)
 
-            // Alignment Grid
-            AlignmentGrid(
-                selectedAlignment = selectedAlignment,
-                onAlignmentSelected = { selectedAlignment ->
-                    viewModel.selectedAlignment.value = selectedAlignment
+                // Race Dropdown with Dialog
+                DropdownMenuWithSearchDialog(
+                    options = raceOptions,
+                    selectedOption = selectedRace,
+                    onOptionSelected = { viewModel.selectedRace.value = it },
+                    label = "Race"
+                )
+
+                // Archetype Dropdown with Dialog
+                DropdownMenuWithSearchDialog(
+                    options = archetypeOptions,
+                    selectedOption = selectedArchetype,
+                    onOptionSelected = { viewModel.selectedArchetype.value = it },
+                    label = "Archetype"
+                )
+
+                // Alignment Grid
+                AlignmentGrid(
+                    selectedAlignment = selectedAlignment,
+                    onAlignmentSelected = { selectedAlignment ->
+                        viewModel.selectedAlignment.value = selectedAlignment
+                    }
+                )
+
+                // Next Button
+                Button(onClick = onNext) {
+                    Text("Next")
                 }
-            )
-
-            // Next Button
-            Button(onClick = onNext) {
-                Text("Next")
             }
         }
     }
@@ -181,7 +226,8 @@ fun DropdownMenuWithSearchDialog(
                 readOnly = true,
                 interactionSource = remember { MutableInteractionSource() },
                 modifier = Modifier
-                    .fillMaxWidth().clickable { dialogOpen = true },
+                    .fillMaxWidth()
+                    .clickable { dialogOpen = true },
                 trailingIcon = {
                     IconButton(onClick = { dialogOpen = true }) {
                         Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
@@ -238,9 +284,6 @@ fun DropdownMenuWithSearchDialog(
         }
     }
 }
-
-
-
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -399,15 +442,15 @@ fun AlignmentGrid(
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+            .fillMaxWidth(),
+            //.padding(4.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Select Alignment",
             style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 4.dp)
         )
 
         for (row in alignments.chunked(3)) {
@@ -430,7 +473,9 @@ fun AlignmentGrid(
                 // If the row has less than 3 items, fill the remaining space with empty boxes
                 if (row.size < 3) {
                     repeat(3 - row.size) {
-                        Spacer(modifier = Modifier.weight(1f).aspectRatio(1f))
+                        Spacer(modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f))
                     }
                 }
             }

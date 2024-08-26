@@ -53,6 +53,7 @@ fun TraitsAndBackstoryScreen(
     onGenerateNPC: () -> Unit
 ) {
     // Access ViewModel's state
+    val selectedGender = viewModel.selectedGender.value
     val selectedTraits = viewModel.selectedTraits.value
     val backstoryPrompt = viewModel.backstoryPrompt.value
     val traitOptions = listOf("Brave", "Calm", "Cunning", "Impulsive", "Wise", "Kind", "Mysterious", "Charming")
@@ -75,6 +76,14 @@ fun TraitsAndBackstoryScreen(
         ) {
             // Progress Indicator
             Text("Step 2 of 2", style = MaterialTheme.typography.bodyMedium)
+
+            // Gender Selection Chips
+            GenderSelectionChips(
+                selectedGender = selectedGender,
+                onGenderSelected = { selectedGender ->
+                    viewModel.selectedGender.value = selectedGender
+                }
+            )
 
             // Traits Selection Section
             Text("Select up to 3 Traits", style = MaterialTheme.typography.headlineMedium)
