@@ -217,6 +217,8 @@ fun DropdownMenuWithSearchDialog(
     var searchQuery by remember { mutableStateOf("") }
     val filteredOptions = options.filter { it.contains(searchQuery, ignoreCase = true) }
     val focusManager = LocalFocusManager.current
+    // Default value if no option is selected
+    val displayedOption = selectedOption ?: "Random"
 
     Box(modifier = Modifier.clickable { focusManager.clearFocus() }) {
         Column {
@@ -225,9 +227,8 @@ fun DropdownMenuWithSearchDialog(
             Text(text = label, style = MaterialTheme.typography.bodyMedium)
 
             OutlinedTextField(
-                value = selectedOption,
+                value = displayedOption,
                 onValueChange = { },
-                label = { Text("Selected $label") },
                 readOnly = true,
                 interactionSource = remember { MutableInteractionSource() },
                 modifier = Modifier
@@ -237,7 +238,8 @@ fun DropdownMenuWithSearchDialog(
                     IconButton(onClick = { dialogOpen = true }) {
                         Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
                     }
-                }
+                },
+                placeholder = { Text(text = "Select $label") } // This could also be "Random"
             )
 
             if (dialogOpen) {
@@ -289,150 +291,6 @@ fun DropdownMenuWithSearchDialog(
         }
     }
 }
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-@Composable
-fun GenderSelectionChips(
-    selectedGender: String?,
-    onGenderSelected: (String) -> Unit
-) {
-    val genderOptions = listOf("Male", "Female", "Non-binary", "Custom")
-
-    // State for custom gender input
-    var customGender by remember { mutableStateOf("") }
-    var isCustomSelected by remember { mutableStateOf(selectedGender == "Custom") }
-    var showError by remember { mutableStateOf(false) }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
-
-    Column {
-        Text("Select Gender", style = MaterialTheme.typography.bodyMedium)
-
-        FlowRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.Center
-        ) {
-            genderOptions.forEach { gender ->
-                val isSelected = selectedGender == gender
-                GenderChip(
-                    text = gender,
-                    isSelected = isSelected,
-                    onClick = {
-                        onGenderSelected(gender)
-                        isCustomSelected = (gender == "Custom")
-                        showError = false // Reset error when switching selection
-                    }
-                )
-            }
-        }
-
-        // Show custom gender input field with smooth animation
-        AnimatedVisibility(
-            visible = isCustomSelected,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
-        ) {
-            Column {
-                OutlinedTextField(
-                    value = customGender,
-                    onValueChange = { newValue ->
-                        // Allow only letters, hyphens, apostrophes, and spaces; limit length to 20
-                        val filteredText = newValue.filter { it.isLetter() || it == '-' || it == '\'' || it.isWhitespace() }
-                        if (filteredText.length <= 20) {
-                            customGender = filteredText
-                        }
-                    },
-                    label = { Text("Enter Custom Gender") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        imeAction = ImeAction.Done,
-                        capitalization = KeyboardCapitalization.Sentences
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                        keyboardController?.hide()
-                        focusManager.clearFocus()
-                        }
-                    ),
-                    isError = showError // Display error if necessary
-                )
-
-                // Error message if input is invalid
-                if (showError) {
-                    Text(
-                        text = "Please enter a valid gender (1-20 characters, no numbers)",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-
-                Spacer(modifier = Modifier.padding(top = 8.dp))
-
-                Button(
-                    onClick = {
-                        if (customGender.isBlank()) {
-                            showError = true
-                        } else {
-                            onGenderSelected(customGender)
-                            showError = false // Hide error when a valid input is submitted
-                        }
-                    },
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text("Confirm")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun GenderChip(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .padding(4.dp)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-        tonalElevation = if (isSelected) 8.dp else 0.dp // Add elevation when selected
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-
-@Composable
-fun CustomChip(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(8.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface)
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(8.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
-}
-
 
 @Composable
 fun AlignmentGrid(
