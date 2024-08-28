@@ -205,11 +205,9 @@ class CharacterViewModel : ViewModel() {
         }
     }
 
-    @Composable
-    private fun generateRandomPortrait(race: String): Painter {
+    fun generateRandomPortrait(race: String): Int{
         // Placeholder for AI portrait generation based on race
-        // This could be replaced with a real AI call
-        return painterResource(id = R.drawable.alignment_true_neutral)
+        return R.drawable.alignment_true_neutral
     }
 
     private fun generateAIBackstory(race: String, archetype: String, traits: List<String>, backstoryPrompt: String): String {
@@ -224,10 +222,9 @@ class CharacterViewModel : ViewModel() {
     }
     
     // Function to reset NPC (Reroll)
-    @Composable
     fun rerollNPC(lockName: Boolean, lockPortrait: Boolean) {
         if (!lockName) npcName.value = generateRandomName(selectedRace.value)
-        if (!lockPortrait) npcPortrait.value = generateRandomPortrait(selectedRace.value)
+        //if (!lockPortrait) npcPortrait.value = generateRandomPortrait(selectedRace.value)
         npcBackstory.value = generateAIBackstory(selectedRace.value, selectedArchetype.value, selectedTraits.value, backstoryPrompt.value)
         npcQuirk.value = generateRandomQuirk()
     }

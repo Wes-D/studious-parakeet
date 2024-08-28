@@ -103,10 +103,14 @@ fun NPCSummaryScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // NPC Portrait
-                npcPortrait?.let {
+
+                //move this later when it makes sense.
+                @Composable
+                fun DisplayNPCPortrait(viewModel: CharacterViewModel) {
+                    val portraitResourceId = viewModel.generateRandomPortrait(viewModel.selectedRace.value)
+
                     Image(
-                        painter = it,
+                        painter = painterResource(id = portraitResourceId),
                         contentDescription = "NPC Portrait",
                         modifier = Modifier
                             .size(150.dp)
@@ -114,18 +118,23 @@ fun NPCSummaryScreen(
                             .border(4.dp, Color.Gray, CircleShape)
                     )
                 }
+                // Display the portrait by calling the function
+                DisplayNPCPortrait(viewModel = CharacterViewModel())
+
 
                 // NPC Name
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = npcName, style = MaterialTheme.typography.headlineMedium)
-                    /*IconButton(onClick = { viewModel.rerollNPC(isNameLocked, isPortraitLocked) }) {
+                    IconButton(onClick = { viewModel.rerollNPC(isNameLocked, isPortraitLocked) }) {
                         Icon(
-                            imageVector = if (isNameLocked) Icons.Default.Lock else Icons.Default.LockOpen,
+                            painter =
+                                if (isNameLocked) painterResource(id = R.drawable.lock_closed)
+                                else painterResource(id = R.drawable.lock_open),
                             contentDescription = "Lock Name"
                         )
-                    }*/
+                    }
                 }
 
                 // NPC Race and Archetype
