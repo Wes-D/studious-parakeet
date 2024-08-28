@@ -16,7 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.lifespark.ui.screens.CharacterBasicInfoScreen
-import com.example.lifespark.ui.screens.CharacterOverviewScreen
+import com.example.lifespark.ui.screens.NPCSummaryScreen
 import com.example.lifespark.ui.screens.HomeScreen
 import com.example.lifespark.ui.screens.TraitsAndBackstoryScreen
 import com.example.lifespark.ui.theme.LifeSparkTheme
@@ -52,43 +52,47 @@ fun AppNavGraph(navController: NavHostController) {
 
         composable("character_basic_info") {
             CharacterBasicInfoScreen(
-                viewModel = characterViewModel,  // Pass the ViewModel to the screen
+                viewModel = characterViewModel,
                 onNext = { navController.navigate("traits_backstory") }
             )
         }
 
         composable("traits_backstory") {
             TraitsAndBackstoryScreen(
-                viewModel = characterViewModel,  // Pass the ViewModel to the screen
+                viewModel = characterViewModel,
                 onGenerateNPC = {
                     // Generate NPC using the ViewModel's state
-                    val generatedNPC = characterViewModel.generateNPC()
+                    characterViewModel.generateNPC()  // This will update the ViewModel
 
-                    // Pass the NPC to the summary screen
-                    navController.navigate("npc_summary") {
-                        navController.currentBackStackEntry?.arguments?.putParcelable("npc", generatedNPC)
-                    }
+                    // Navigate to the NPC Summary screen
+                    navController.navigate("npc_summary")
                 }
             )
         }
 
         composable("npc_summary") {
-            val npc = navController.previousBackStackEntry?.arguments?.getParcelable<NPC>("npc")
-            npc?.let {
-                CharacterOverviewScreen(
-                    npc = it,
-                    onEditCharacter = { navController.popBackStack() },
-                    onSaveCharacter = { /* Handle save */ },
-                    onExportCharacter = { /* Handle export */ }
-                )
-            }
+            NPCSummaryScreen(
+                viewModel = characterViewModel,  // Retrieve the generated NPC from the ViewModel
+                onEdit = { navController.popBackStack() },  // Pop back to Traits and Backstory Screen
+                onSave = { /* Handle save logic */ },
+                onExportPDF = { /* Handle export to PDF */ },
+                onReroll = { TODO() },
+                //onReroll = { characterViewModel.rerollNPC(isNameLocked = false, isPortraitLocked = false) },
+                onReturnToMain = {
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                },
+                isNameLocked = false,  // Lock functionality (can be tied to UI state)
+                isPortraitLocked = false
+            )
         }
 
-
-        // Load Character Screen
+        // Load Character Screen (Placeholder)
         composable("load_character") {
             // TODO: Implement LoadCharacterScreen
         }
     }
 }
+
 

@@ -49,9 +49,11 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -122,7 +124,7 @@ fun TraitsAndBackstoryScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                //horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Progress Indicator
@@ -166,7 +168,7 @@ fun TraitsAndBackstoryScreen(
                 // Backstory Prompt Section
                 Text(
                     "Backstory Prompt (Optional):",
-                    style = MaterialTheme.typography.headlineSmall
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 TextField(
@@ -195,14 +197,15 @@ fun GenderSelectionChips(
     selectedGender: String?,
     onGenderSelected: (String) -> Unit
 ) {
-    val genderOptions = listOf("Male", "Female", "Non-binary", "Custom")
+    // Gender options and state variables
+    val genderOptions = listOf("Female", "Male", "Non-binary", "Custom")
+    var customGender by remember { mutableStateOf("") }
+    var showDialog by remember { mutableStateOf(false) }
 
-    // State for custom gender input
-    var customGender by remember { mutableStateOf(selectedGender.takeIf { it !in genderOptions } ?: "") }
-    var isCustomSelected by remember { mutableStateOf(selectedGender == "Custom" || selectedGender !in genderOptions) }
-    var showError by remember { mutableStateOf(false) }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
+    // Ensure default gender selection is the first item unless a gender is already selected
+    val currentGender = remember {
+        mutableStateOf(selectedGender ?: genderOptions.first())
+    }
 
     Column {
         Text("Select Gender", style = MaterialTheme.typography.bodyMedium)
@@ -215,86 +218,94 @@ fun GenderSelectionChips(
             verticalArrangement = Arrangement.Center
         ) {
             genderOptions.forEach { gender ->
-                val isSelected = selectedGender == gender
+                val isSelected = when {
+                    gender == "Custom" && customGender.isNotEmpty() -> currentGender.value == customGender
+                    else -> currentGender.value == gender
+                }
+
                 GenderChip(
-                    text = gender,
+                    text = if (gender == "Custom" && customGender.isNotEmpty()) "Custom: $customGender" else gender,
                     isSelected = isSelected,
                     onClick = {
-                        onGenderSelected(gender)
-                        isCustomSelected = (gender == "Custom")
-                        if (!isCustomSelected) customGender = "" // Reset custom input if not selected
-                        showError = false // Reset error when switching selection
+                        if (gender == "Custom") {
+                            showDialog = true
+                        } else {
+                            currentGender.value = gender
+                            onGenderSelected(gender)
+                        }
                     }
                 )
             }
         }
 
-        // Show custom gender input field with smooth animation
-        AnimatedVisibility(
-            visible = isCustomSelected,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
-        ) {
-            Column {
-                OutlinedTextField(
-                    value = customGender,
-                    onValueChange = { newValue ->
-                        // Allow only letters, hyphens, apostrophes, and spaces; limit length to 20
-                        val filteredText = newValue.filter { it.isLetter() || it == '-' || it == '\'' || it.isWhitespace() }
-                        if (filteredText.length <= 20) {
-                            customGender = filteredText
-                        }
-                    },
-                    label = { Text("Enter Custom Gender") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        imeAction = ImeAction.Done,
-                        capitalization = KeyboardCapitalization.Sentences
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            keyboardController?.hide()
-                            focusManager.clearFocus()
-                            if (customGender.isBlank()) {
-                                showError = true
-                            } else {
-                                onGenderSelected(customGender)
-                                showError = false // Hide error when a valid input is submitted
-                            }
-                        }
-                    ),
-                    isError = showError // Display error if necessary
-                )
-
-                // Error message if input is invalid
-                if (showError) {
-                    Text(
-                        text = "Please enter a valid gender (1-20 characters, no numbers)",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-
-                Spacer(modifier = Modifier.padding(top = 8.dp))
-
-                Button(
-                    onClick = {
-                        if (customGender.isBlank()) {
-                            showError = true
-                        } else {
-                            onGenderSelected(customGender)
-                            showError = false // Hide error when a valid input is submitted
-                        }
-                    },
-                    modifier = Modifier.align(Alignment.End)
-                ) {
-                    Text("Confirm")
-                }
-            }
+        if (showDialog) {
+            CustomGenderDialog(
+                customGender = customGender,
+                onGenderConfirm = { newGender ->
+                    customGender = newGender
+                    currentGender.value = newGender // Set custom gender as selected
+                    onGenderSelected(newGender)
+                    showDialog = false
+                },
+                onDismiss = { showDialog = false }
+            )
         }
     }
 }
+
+@Composable
+fun CustomGenderDialog(
+    customGender: String,
+    onGenderConfirm: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var textState by remember { mutableStateOf(customGender) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Enter Custom Gender") },
+        text = {
+            OutlinedTextField(
+                value = textState,
+                onValueChange = { newValue ->
+                    val filteredText = newValue.filter { it.isLetter() || it == '-' || it == '\'' || it.isWhitespace() }
+                    if (filteredText.length <= 20) {
+                        textState = filteredText
+                    }
+                },
+                placeholder = { Text("Enter custom gender") },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done,
+                    capitalization = KeyboardCapitalization.Sentences
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        if (textState.isNotBlank()) {
+                            onGenderConfirm(textState)
+                        }
+                    }
+                )
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (textState.isNotBlank()) {
+                        onGenderConfirm(textState)
+                    }
+                }
+            ) {
+                Text("OK")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
 
 @Composable
 fun GenderChip(
@@ -305,11 +316,11 @@ fun GenderChip(
     Surface(
         modifier = Modifier
             .padding(4.dp)
-            .clickable(onClick = onClick),
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         border = if (isSelected) BorderStroke(2.dp, Color(0xFF9575CD)) // Fantasy purple for selected
         else BorderStroke(1.dp, Color(0xFFD7CCC8)), // Parchment-like color for unselected
-        shadowElevation = if (isSelected) 8.dp else 2.dp, // Stronger shadow for selected chips
+        shadowElevation = if (isSelected) 8.dp else 2.dp,
         color = Color.Transparent // Transparent color to allow background painter texture to show through
     ) {
         Box(
@@ -329,13 +340,13 @@ fun GenderChip(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Medium,
-                    color = if (isSelected) Color(0xFF4CAF50) // Green for selected text
-                    else Color(0xFF3E2723) // Dark brown for unselected text
+                    color = if (isSelected) Color(0xFF4CAF50) else Color(0xFF3E2723)
                 )
             )
         }
     }
 }
+
 
 @Composable
 fun TraitChip(
