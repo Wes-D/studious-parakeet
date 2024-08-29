@@ -62,7 +62,7 @@ fun AppNavGraph(navController: NavHostController) {
                 viewModel = characterViewModel,
                 onGenerateNPC = {
                     // Generate NPC using the ViewModel's state
-                    characterViewModel.generateNPC()  // This will update the ViewModel
+                    characterViewModel.generateNPC()
 
                     // Navigate to the NPC Summary screen
                     navController.navigate("npc_summary")
@@ -76,8 +76,10 @@ fun AppNavGraph(navController: NavHostController) {
                 onEdit = { navController.popBackStack() },  // Pop back to Traits and Backstory Screen
                 onSave = { /* Handle save logic */ },
                 onExportPDF = { /* Handle export to PDF */ },
-                onReroll = { TODO() },
-                //onReroll = { characterViewModel.rerollNPC(isNameLocked = false, isPortraitLocked = false) },
+                onReroll = { TODO()
+                    // Handle rerolling of NPC data and optionally regenerate portrait
+                    // characterViewModel.rerollNPC(isNameLocked = false, isPortraitLocked = false)
+                },
                 onReturnToMain = {
                     navController.navigate("home") {
                         popUpTo("home") { inclusive = true }
@@ -94,5 +96,6 @@ fun AppNavGraph(navController: NavHostController) {
         }
     }
 }
+
 
 

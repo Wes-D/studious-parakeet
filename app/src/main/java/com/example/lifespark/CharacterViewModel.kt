@@ -5,6 +5,20 @@ import androidx.lifecycle.ViewModel
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import okhttp3.*
+import org.json.JSONObject
+import java.io.IOException
+import android.util.Base64
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import android.graphics.BitmapFactory
+import android.graphics.Bitmap
+import android.util.Log
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class CharacterViewModel : ViewModel() {
     var selectedRace = mutableStateOf("")
@@ -14,19 +28,71 @@ class CharacterViewModel : ViewModel() {
     var selectedTraits = mutableStateOf<List<String>>(emptyList())
     var backstoryPrompt = mutableStateOf("")
     var npcName = mutableStateOf("")
-    var npcPortrait = mutableStateOf<Painter?>(null) // AI-generated portrait
+    var npcPortrait = mutableStateOf<Painter?>(null)  // Updated to use AI-generated portrait
     var npcBackstory = mutableStateOf("")
     var npcQuirk = mutableStateOf("")
 
-    // Function to generate the NPC and populate relevant fields
+    private val client = OkHttpClient()
+
+    // Generate the NPC and populate the fields
     fun generateNPC() {
         npcName.value = generateRandomName(selectedRace.value)
-
-        //npcPortrait.value = generateRandomPortrait(selectedRace.value)
-
-
+        generateAIPortrait()  // Generate AI portrait using traits
         npcBackstory.value = generateAIBackstory(selectedRace.value, selectedArchetype.value, selectedTraits.value, backstoryPrompt.value)
         npcQuirk.value = generateRandomQuirk()
+    }
+
+    // Build the prompt using race, archetype, and alignment
+    private fun buildPrompt(): String {
+        return " score_9, score_8_up, score_7_up, score_6_up, 1dk, A detailed close-up portrait of a ${selectedGender.value} ${selectedRace.value} ${selectedArchetype.value}. " +
+                "Their expression, features, and accessories should express their ${selectedAlignment.value} moral alignment. Face focus, Fantasy, Aesthetic, High resolution"
+    }
+
+    // Function to generate the AI portrait
+    private fun generateAIPortrait() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val prompt = buildPrompt()
+            val json = JSONObject().apply {
+                put("prompt", prompt)
+                put("negative_prompt", "score_6, score_5, score_4, worst quality, low quality, text, censored, deformed, bad hand, blurry, (watermark), extra hands")
+                put("steps", 30)
+                put("cfg_scale", 7.0)
+                put("sampler_name", "Euler a")
+                put("lora", "1dkXLP.safetensors")
+                put("lora_strength", 0.9)
+            }
+
+            val requestBody = json.toString().toRequestBody("application/json".toMediaTypeOrNull())
+            val request = Request.Builder()
+                .url("http://192.168.0.101:7860/sdapi/v1/txt2img")
+                .post(requestBody)
+                .build()
+
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    e.printStackTrace()
+                    Log.e("API", "Request failed: ${e.message}")
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    response.body?.let { responseBody ->
+                        if (!response.isSuccessful) {
+                            Log.e("API", "Request failed with status code: ${response.code}")
+                            return
+                        }
+                        val jsonResponse = JSONObject(responseBody.string())
+                        val imageBase64 = jsonResponse.getJSONArray("images").getString(0)
+                        val imageBytes = Base64.decode(imageBase64, Base64.DEFAULT)
+                        val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+
+                        // Update the portrait on the main thread
+                        viewModelScope.launch(Dispatchers.Main) {
+                            npcPortrait.value = BitmapPainter(bitmap.asImageBitmap())
+                        }
+                    }
+                }
+            })
+        }
     }
 
     private fun generateRandomName(race: String): String {
@@ -205,11 +271,6 @@ class CharacterViewModel : ViewModel() {
         }
     }
 
-    fun generateRandomPortrait(race: String): Int{
-        // Placeholder for AI portrait generation based on race
-        return R.drawable.alignment_true_neutral
-    }
-
     private fun generateAIBackstory(race: String, archetype: String, traits: List<String>, backstoryPrompt: String): String {
         // Placeholder for AI backstory generation based on user input
         return "This is a detailed AI-generated backstory for a $race $archetype."
@@ -224,7 +285,7 @@ class CharacterViewModel : ViewModel() {
     // Function to reset NPC (Reroll)
     fun rerollNPC(lockName: Boolean, lockPortrait: Boolean) {
         if (!lockName) npcName.value = generateRandomName(selectedRace.value)
-        //if (!lockPortrait) npcPortrait.value = generateRandomPortrait(selectedRace.value)
+        if (!lockPortrait) generateAIPortrait()
         npcBackstory.value = generateAIBackstory(selectedRace.value, selectedArchetype.value, selectedTraits.value, backstoryPrompt.value)
         npcQuirk.value = generateRandomQuirk()
     }

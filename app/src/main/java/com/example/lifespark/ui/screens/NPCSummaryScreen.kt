@@ -41,13 +41,13 @@ import com.example.lifespark.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NPCSummaryScreen(
-    viewModel: CharacterViewModel, // ViewModel provides NPC data
+    viewModel: CharacterViewModel,
     onEdit: () -> Unit,
     onSave: () -> Unit,
     onExportPDF: () -> Unit,
     onReroll: () -> Unit,
     onReturnToMain: () -> Unit,
-    isNameLocked: Boolean, // Lock state for reroll
+    isNameLocked: Boolean,
     isPortraitLocked: Boolean
 ) {
     val npcName = viewModel.npcName.value
@@ -56,149 +56,83 @@ fun NPCSummaryScreen(
     val npcTraits = viewModel.selectedTraits.value
     val npcBackstory = viewModel.npcBackstory.value
     val npcQuirk = viewModel.npcQuirk.value
-    var npcPortrait = viewModel.npcPortrait.value
-    val backgroundPainter: Painter = painterResource(id = R.drawable.background_parchment)
-
-    npcPortrait = painterResource(id = R.drawable.alignment_true_neutral)
+    val npcPortrait = viewModel.npcPortrait.value
 
     Scaffold(
         topBar = {
-            // Custom TopAppBar with decoration and soft shadow
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp)
-                    .background(Color(0xFFFBE9E7)) // Parchment-like color
-                    .shadow(2.dp) // Soft shadow for depth
-            ) {
-                // The main title text centered
-                Text(
-                    text = "Basic Information",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontFamily = FontFamily.Serif,
-                        color = Color(0xFF3E2723)
-                    ),
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
+            TopAppBar(title = { Text("NPC Overview") })
         }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Transparent)
+                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            // Image as a background
-            Image(
-                painter = backgroundPainter,
-                contentDescription = null,
-                contentScale = ContentScale.Crop, // Scale the image to fill the entire box
-                modifier = Modifier.fillMaxSize()
-            )
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
-                //move this later when it makes sense.
-                @Composable
-                fun DisplayNPCPortrait(viewModel: CharacterViewModel) {
-                    val portraitResourceId = viewModel.generateRandomPortrait(viewModel.selectedRace.value)
-
+                // NPC Portrait
+                if (npcPortrait != null) {
                     Image(
-                        painter = painterResource(id = portraitResourceId),
+                        painter = npcPortrait,
                         contentDescription = "NPC Portrait",
                         modifier = Modifier
                             .size(150.dp)
                             .clip(CircleShape)
                             .border(4.dp, Color.Gray, CircleShape)
                     )
+                } else {
+                    Text("Generating Portrait...")
                 }
-                // Display the portrait by calling the function
-                DisplayNPCPortrait(viewModel = CharacterViewModel())
-
 
                 // NPC Name
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = npcName, style = MaterialTheme.typography.headlineMedium)
                     IconButton(onClick = { viewModel.rerollNPC(isNameLocked, isPortraitLocked) }) {
                         Icon(
-                            painter =
-                                if (isNameLocked) painterResource(id = R.drawable.lock_closed)
-                                else painterResource(id = R.drawable.lock_open),
+                            painter = if (isNameLocked) painterResource(id = R.drawable.lock_closed)
+                            else painterResource(id = R.drawable.lock_open),
                             contentDescription = "Lock Name"
                         )
                     }
                 }
 
                 // NPC Race and Archetype
-                Text(
-                    text = "$npcRace - $npcArchetype",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                Text(text = "$npcRace - $npcArchetype", style = MaterialTheme.typography.bodyLarge)
 
-                // NPC Traits
-                Text(
-                    text = "Traits: ${npcTraits.joinToString(", ")}",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-
-                // NPC Quirk
-                Text(
-                    text = "Quirk: $npcQuirk",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                // NPC Traits and Quirk
+                Text(text = "Traits: ${npcTraits.joinToString(", ")}", style = MaterialTheme.typography.bodyLarge)
+                Text(text = "Quirk: $npcQuirk", style = MaterialTheme.typography.bodyLarge)
 
                 // NPC Backstory
-                Text(
-                    text = "Backstory:",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Text(
-                    text = npcBackstory,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Backstory:", style = MaterialTheme.typography.headlineSmall)
+                Text(text = npcBackstory, style = MaterialTheme.typography.bodyMedium)
 
                 // Action Buttons
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Button(onClick = onEdit) {
-                        Text("Edit")
-                    }
-                    Button(onClick = onSave) {
-                        Text("Save")
-                    }
-                    Button(onClick = onExportPDF) {
-                        Text("PDF")
-                    }
+                    Button(onClick = onEdit) { Text("Edit") }
+                    Button(onClick = onSave) { Text("Save") }
+                    Button(onClick = onExportPDF) { Text("Export PDF") }
                 }
 
                 Row(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Button(onClick = onReroll) {
-                        Text("Reroll")
-                    }
-                    Button(onClick = onReturnToMain) {
-                        Text("Main")
-                    }
+                    Button(onClick = onReroll) { Text("Reroll") }
+                    Button(onClick = onReturnToMain) { Text("Return to Main") }
                 }
             }
         }
     }
 }
+
 
 
 
